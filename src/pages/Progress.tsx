@@ -4,7 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Navbar } from "@/components/Navbar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, Award, Mic2, Target } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { TrendingUp, Award, Mic2, Target, X } from "lucide-react";
+import { FeedbackCard } from "@/components/FeedbackCard";
 
 interface Profile {
   name: string;
@@ -20,11 +22,25 @@ interface Speech {
   is_assessment: boolean;
 }
 
+interface Feedback {
+  id: string;
+  confidence_score: number;
+  pace_rating: string;
+  clarity_rating: string;
+  filler_words_count: number;
+  strengths: string[];
+  improvements: string[];
+  ai_summary: string;
+}
+
 export default function Progress() {
   const navigate = useNavigate();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [speeches, setSpeeches] = useState<Speech[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedSpeechId, setSelectedSpeechId] = useState<string | null>(null);
+  const [speechFeedback, setSpeechFeedback] = useState<Feedback | null>(null);
+  const [loadingFeedback, setLoadingFeedback] = useState(false);
 
   useEffect(() => {
     loadProgress();
@@ -53,6 +69,20 @@ export default function Progress() {
     setProfile(profileData);
     setSpeeches(speechesData || []);
     setLoading(false);
+  };
+
+  const loadSpeechFeedback = async (speechId: string) => {
+    setLoadingFeedback(true);
+    setSelectedSpeechId(speechId);
+
+    const { data: feedbackData } = await supabase
+      .from("feedback")
+      .select("*")
+      .eq("speech_id", speechId)
+      .single();
+
+    setSpeechFeedback(feedbackData);
+    setLoadingFeedback(false);
   };
 
   const badges = [
@@ -186,7 +216,8 @@ export default function Progress() {
                   {speeches.map((speech) => (
                     <div 
                       key={speech.id}
-                      className="p-4 rounded-lg border border-border/50 bg-muted/30 hover:bg-muted/50 transition-smooth"
+                      className="p-4 rounded-lg border border-border/50 bg-muted/30 hover:bg-muted/50 transition-smooth cursor-pointer"
+                      onClick={() => loadSpeechFeedback(speech.id)}
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
@@ -219,6 +250,43 @@ export default function Progress() {
               )}
             </CardContent>
           </Card>
+
+          {/* Feedback Modal */}
+          {selectedSpeechId && (
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+              <div className="bg-background rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+                <div className="sticky top-0 bg-background border-b border-border/50 p-4 flex items-center justify-between">
+                  <h2 className="text-2xl font-bold">Speech Analysis</h2>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => {
+                      setSelectedSpeechId(null);
+                      setSpeechFeedback(null);
+                    }}
+                  >
+                    <X className="h-5 w-5" />
+                  </Button>
+                </div>
+                <div className="p-6">
+                  {loadingFeedback ? (
+                    <div className="text-center py-12">
+                      <div className="animate-pulse">
+                        <Mic2 className="h-16 w-16 mx-auto text-primary mb-4" />
+                      </div>
+                      <p className="text-muted-foreground">Loading analysis...</p>
+                    </div>
+                  ) : speechFeedback ? (
+                    <FeedbackCard feedback={speechFeedback} />
+                  ) : (
+                    <div className="text-center py-12 text-muted-foreground">
+                      <p>No feedback available for this speech yet.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

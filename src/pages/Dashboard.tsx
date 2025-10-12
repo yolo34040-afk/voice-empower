@@ -51,12 +51,16 @@ export default function Dashboard() {
   };
 
   const prompts = [
-    "Tell us about a time when you overcame a challenge",
-    "Describe your ideal day from start to finish",
-    "Explain a concept you're passionate about to a beginner"
+    "Describe a moment that changed your perspective on life",
+    "Explain why communication matters in today's world",
+    "Share a story about overcoming fear or doubt",
+    "Teach us something you're passionate about",
+    "Discuss a book, movie, or idea that inspired you"
   ];
 
-  const randomPrompt = prompts[Math.floor(Math.random() * prompts.length)];
+  // Use a stable daily prompt (changes daily but stays same throughout the day)
+  const dailyPromptIndex = new Date().getDate() % prompts.length;
+  const dailyPrompt = prompts[dailyPromptIndex];
 
   if (loading) {
     return (
@@ -144,10 +148,10 @@ export default function Dashboard() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <p className="text-xl font-medium italic">"{randomPrompt}"</p>
+              <p className="text-xl font-medium italic">"{dailyPrompt}"</p>
               <Button 
                 className="bg-primary hover:bg-primary/90 glow-primary"
-                onClick={() => navigate("/practice")}
+                onClick={() => navigate(`/practice?prompt=${encodeURIComponent(dailyPrompt)}`)}
               >
                 <Upload className="mr-2 h-4 w-4" />
                 Start Recording

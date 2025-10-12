@@ -11,7 +11,7 @@ interface FeedbackCardProps {
     strengths: string[];
     improvements: string[];
     ai_summary: string;
-    created_at: string;
+    created_at?: string;
   };
 }
 

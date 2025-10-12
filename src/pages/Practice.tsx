@@ -17,6 +17,22 @@ export default function Practice() {
   const [analyzing, setAnalyzing] = useState(false);
   const [feedback, setFeedback] = useState<any>(null);
 
+  const prompts = [
+    "Describe a moment that changed your perspective on life",
+    "Explain why communication matters in today's world",
+    "Share a story about overcoming fear or doubt",
+    "Teach us something you're passionate about",
+    "Discuss a book, movie, or idea that inspired you"
+  ];
+
+  // Get prompt from URL or use a stable daily prompt
+  const urlParams = new URLSearchParams(window.location.search);
+  const promptFromUrl = urlParams.get('prompt');
+  
+  // Use a stable prompt based on the day (changes daily but stays same throughout the day)
+  const dailyPromptIndex = new Date().getDate() % prompts.length;
+  const dailyPrompt = promptFromUrl || prompts[dailyPromptIndex];
+
   useEffect(() => {
     checkAuth();
   }, []);
@@ -27,16 +43,6 @@ export default function Practice() {
       navigate("/auth");
     }
   };
-
-  const prompts = [
-    "Describe a moment that changed your perspective on life",
-    "Explain why communication matters in today's world",
-    "Share a story about overcoming fear or doubt",
-    "Teach us something you're passionate about",
-    "Discuss a book, movie, or idea that inspired you"
-  ];
-
-  const randomPrompt = prompts[Math.floor(Math.random() * prompts.length)];
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -81,7 +87,7 @@ export default function Practice() {
           user_id: session.user.id,
           title: title,
           audio_url: publicUrl,
-          prompt_used: randomPrompt
+          prompt_used: dailyPrompt
         });
 
       if (speechError) throw speechError;
@@ -116,7 +122,7 @@ export default function Practice() {
           body: {
             audio_url: publicUrl,
             speech_id: speechId,
-            prompt_used: randomPrompt
+            prompt_used: dailyPrompt
           }
         });
 
@@ -217,7 +223,7 @@ export default function Practice() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-xl font-medium italic">"{randomPrompt}"</p>
+              <p className="text-xl font-medium italic">"{dailyPrompt}"</p>
             </CardContent>
           </Card>
 
