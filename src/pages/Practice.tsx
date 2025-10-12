@@ -8,11 +8,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Upload, Sparkles } from "lucide-react";
 import { toast } from "sonner";
+import { FeedbackCard } from "@/components/FeedbackCard";
 
 export default function Practice() {
   const navigate = useNavigate();
   const [title, setTitle] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [feedback, setFeedback] = useState<any>(null);
 
   useEffect(() => {
     checkAuth();
@@ -83,6 +86,12 @@ export default function Practice() {
 
       if (speechError) throw speechError;
 
+      const speechId = speechError ? null : (await supabase
+        .from('speeches')
+        .select('id')
+        .eq('audio_url', publicUrl)
+        .single()).data?.id;
+
       // Update total speeches count
       const { data: profile } = await supabase
         .from('profiles')
@@ -97,8 +106,30 @@ export default function Practice() {
           .eq('id', session.user.id);
       }
 
-      toast.success("Speech uploaded! Generating feedback...");
-      navigate("/dashboard");
+      toast.success("Speech uploaded! Analyzing...");
+      setUploading(false);
+      setAnalyzing(true);
+
+      // Call AI analysis edge function
+      const { data: analysisData, error: analysisError } = await supabase.functions
+        .invoke('analyze-speech', {
+          body: {
+            audio_url: publicUrl,
+            speech_id: speechId,
+            prompt_used: randomPrompt
+          }
+        });
+
+      if (analysisError) {
+        console.error('Analysis error:', analysisError);
+        toast.error("Analysis failed, but speech was saved");
+        navigate("/dashboard");
+        return;
+      }
+
+      setFeedback(analysisData.feedback);
+      toast.success("Analysis complete!");
+      setAnalyzing(false);
 
     } catch (error: any) {
       console.error('Upload error:', error);
@@ -107,6 +138,63 @@ export default function Practice() {
       setUploading(false);
     }
   };
+
+  // Show feedback if available
+  if (feedback) {
+    return (
+      <div className="min-h-screen gradient-hero">
+        <Navbar />
+        <div className="container mx-auto px-4 pt-24 pb-20">
+          <div className="max-w-3xl mx-auto space-y-8">
+            <div className="animate-fade-in">
+              <h1 className="text-4xl md:text-5xl font-bold mb-2">Analysis Complete! 🎉</h1>
+              <p className="text-xl text-muted-foreground">
+                Here's your personalized feedback
+              </p>
+            </div>
+
+            <FeedbackCard feedback={feedback} />
+
+            <div className="flex gap-4">
+              <Button 
+                onClick={() => {
+                  setFeedback(null);
+                  setTitle("");
+                }}
+                className="flex-1 bg-primary hover:bg-primary/90"
+              >
+                Practice Again
+              </Button>
+              <Button 
+                onClick={() => navigate("/dashboard")}
+                variant="outline"
+                className="flex-1"
+              >
+                Back to Dashboard
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show analyzing state
+  if (analyzing) {
+    return (
+      <div className="min-h-screen gradient-hero flex items-center justify-center">
+        <div className="text-center space-y-4 animate-fade-in">
+          <div className="animate-pulse">
+            <Sparkles className="h-16 w-16 mx-auto text-accent" />
+          </div>
+          <h2 className="text-3xl font-bold">Analyzing Your Speech...</h2>
+          <p className="text-muted-foreground max-w-md">
+            Our AI is transcribing your audio and analyzing your speaking style. This may take a minute.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen gradient-hero">

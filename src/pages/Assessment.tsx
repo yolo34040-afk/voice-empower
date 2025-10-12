@@ -13,6 +13,7 @@ export default function Assessment() {
   const [step, setStep] = useState(1);
   const [uploading, setUploading] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
+  const [speechId, setSpeechId] = useState<string | null>(null);
 
   useEffect(() => {
     checkAuth();
