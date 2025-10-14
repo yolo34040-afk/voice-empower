@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Navbar } from "@/components/Navbar";
@@ -50,17 +50,19 @@ export default function Dashboard() {
     setLoading(false);
   };
 
-  const prompts = [
+  const prompts = useMemo(() => [
     "Describe a moment that changed your perspective on life",
     "Explain why communication matters in today's world",
     "Share a story about overcoming fear or doubt",
     "Teach us something you're passionate about",
     "Discuss a book, movie, or idea that inspired you"
-  ];
+  ], []);
 
   // Use a stable daily prompt (changes daily but stays same throughout the day)
-  const dailyPromptIndex = new Date().getDate() % prompts.length;
-  const dailyPrompt = prompts[dailyPromptIndex];
+  const dailyPrompt = useMemo(() => {
+    const dailyPromptIndex = new Date().getDate() % prompts.length;
+    return prompts[dailyPromptIndex];
+  }, [prompts]);
 
   if (loading) {
     return (
@@ -162,7 +164,7 @@ export default function Dashboard() {
           {/* Quick Actions */}
           <div className="grid md:grid-cols-2 gap-6">
             <Card className="shadow-card bg-card/80 backdrop-blur border-border/50 hover-scale transition-smooth cursor-pointer"
-                  onClick={() => navigate("/practice")}>
+                  onClick={() => navigate(`/practice?prompt=${encodeURIComponent(dailyPrompt)}`)}>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Upload className="h-5 w-5 text-primary" />

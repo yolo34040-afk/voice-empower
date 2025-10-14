@@ -34,10 +34,24 @@ serve(async (req) => {
 
     // Step 1: Download audio from storage
     console.log('Downloading audio from storage...');
-    const audioFileName = audio_url.split('/').pop();
+    
+    // Extract the full storage object path from audio_url
+    const objectPath = (() => {
+      try {
+        const u = new URL(audio_url);
+        const idx = u.pathname.indexOf('/speeches/');
+        if (idx !== -1) return decodeURIComponent(u.pathname.slice(idx + '/speeches/'.length));
+      } catch {}
+      const match = audio_url.match(/\/speeches\/(.+)$/);
+      if (match) return decodeURIComponent(match[1]);
+      throw new Error('Could not parse storage path from audio_url');
+    })();
+    
+    console.log('Downloading from path:', objectPath);
+    
     const { data: audioData, error: downloadError } = await supabase.storage
       .from('speeches')
-      .download(audioFileName);
+      .download(objectPath);
 
     if (downloadError) {
       console.error('Download error:', downloadError);
@@ -61,8 +75,8 @@ serve(async (req) => {
 
     if (!whisperResponse.ok) {
       const error = await whisperResponse.text();
-      console.error('Whisper error:', error);
-      throw new Error('Transcription failed');
+      console.error('Whisper error:', whisperResponse.status, error);
+      throw new Error(`Transcription failed: ${whisperResponse.status} - ${error}`);
     }
 
     const { text: transcript } = await whisperResponse.json();
@@ -120,8 +134,14 @@ Be specific, encouraging, and actionable in your feedback.`;
 
     if (!aiResponse.ok) {
       const error = await aiResponse.text();
-      console.error('AI analysis error:', error);
-      throw new Error('AI analysis failed');
+      console.error('AI analysis error:', aiResponse.status, error);
+      if (aiResponse.status === 429) {
+        throw new Error('Rate limit exceeded. Please try again later.');
+      }
+      if (aiResponse.status === 402) {
+        throw new Error('Payment required. Please add credits to your workspace.');
+      }
+      throw new Error(`AI analysis failed: ${aiResponse.status} - ${error}`);
     }
 
     const aiResult = await aiResponse.json();

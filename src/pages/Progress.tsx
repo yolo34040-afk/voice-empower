@@ -79,7 +79,7 @@ export default function Progress() {
       .from("feedback")
       .select("*")
       .eq("speech_id", speechId)
-      .single();
+      .maybeSingle();
 
     setSpeechFeedback(feedbackData);
     setLoadingFeedback(false);

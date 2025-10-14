@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Navbar } from "@/components/Navbar";
@@ -17,21 +17,21 @@ export default function Practice() {
   const [analyzing, setAnalyzing] = useState(false);
   const [feedback, setFeedback] = useState<any>(null);
 
-  const prompts = [
+  const prompts = useMemo(() => [
     "Describe a moment that changed your perspective on life",
     "Explain why communication matters in today's world",
     "Share a story about overcoming fear or doubt",
     "Teach us something you're passionate about",
     "Discuss a book, movie, or idea that inspired you"
-  ];
+  ], []);
 
-  // Get prompt from URL or use a stable daily prompt
-  const urlParams = new URLSearchParams(window.location.search);
-  const promptFromUrl = urlParams.get('prompt');
-  
-  // Use a stable prompt based on the day (changes daily but stays same throughout the day)
-  const dailyPromptIndex = new Date().getDate() % prompts.length;
-  const dailyPrompt = promptFromUrl || prompts[dailyPromptIndex];
+  // Get stable prompt from URL parameter or use daily prompt (computed once)
+  const dailyPrompt = useMemo(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const promptFromUrl = urlParams.get('prompt');
+    const dailyPromptIndex = new Date().getDate() % prompts.length;
+    return promptFromUrl || prompts[dailyPromptIndex];
+  }, [prompts]);
 
   useEffect(() => {
     checkAuth();
@@ -81,22 +81,21 @@ export default function Practice() {
         .from('speeches')
         .getPublicUrl(fileName);
 
-      const { error: speechError } = await supabase
+      // Insert speech record and get ID atomically
+      const { data: speechData, error: speechError } = await supabase
         .from('speeches')
         .insert({
           user_id: session.user.id,
           title: title,
           audio_url: publicUrl,
           prompt_used: dailyPrompt
-        });
-
-      if (speechError) throw speechError;
-
-      const speechId = speechError ? null : (await supabase
-        .from('speeches')
+        })
         .select('id')
-        .eq('audio_url', publicUrl)
-        .single()).data?.id;
+        .single();
+
+      if (speechError || !speechData) throw speechError || new Error("Failed to save speech");
+
+      const speechId = speechData.id;
 
       // Update total speeches count
       const { data: profile } = await supabase
@@ -128,7 +127,7 @@ export default function Practice() {
 
       if (analysisError) {
         console.error('Analysis error:', analysisError);
-        toast.error("Analysis failed, but speech was saved");
+        toast.error(analysisError.message || "Analysis failed, but speech was saved");
         navigate("/dashboard");
         return;
       }
