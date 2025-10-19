@@ -66,42 +66,55 @@ export default function Assessment() {
       setStep(3);
       setAnalyzing(true);
 
-      // Simulate AI analysis (in production, this would call an edge function)
-      setTimeout(async () => {
-        // Update user profile with assessment results
-        const level = file.size > 5000000 ? 'confident' : file.size > 2000000 ? 'intermediate' : 'beginner';
-        
-        const { error: updateError } = await supabase
-          .from('profiles')
-          .update({ 
-            speaking_level: level,
-            confidence_score: Math.floor(Math.random() * 30) + 50,
-            total_speeches: 1
-          })
-          .eq('id', session.user.id);
+      // Create speech record first to get the ID
+      const { data: speechData, error: speechError } = await supabase
+        .from('speeches')
+        .insert({
+          user_id: session.user.id,
+          title: 'Initial Assessment',
+          audio_url: publicUrl,
+          is_assessment: true,
+          prompt_used: 'Introduce yourself and share your speaking goals'
+        })
+        .select()
+        .single();
 
-        if (updateError) throw updateError;
+      if (speechError) throw speechError;
 
-        // Create speech record
-        const { error: speechError } = await supabase
-          .from('speeches')
-          .insert({
-            user_id: session.user.id,
-            title: 'Initial Assessment',
-            audio_url: publicUrl,
-            is_assessment: true,
-            prompt_used: 'Introduce yourself and share your speaking goals'
-          });
+      // Call edge function for real AI analysis
+      const { data: analysisData, error: analysisError } = await supabase.functions.invoke('analyze-speech', {
+        body: { 
+          audioUrl: publicUrl,
+          speechId: speechData.id 
+        }
+      });
 
-        if (speechError) throw speechError;
-
+      if (analysisError) {
+        console.error('Analysis error:', analysisError);
+        toast.error("Failed to analyze speech. Please try again.");
         setAnalyzing(false);
-        toast.success("Assessment complete! 🎉");
-        
-        setTimeout(() => {
-          navigate("/dashboard");
-        }, 1500);
-      }, 3000);
+        setStep(1);
+        return;
+      }
+
+      // Update user profile with assessment results
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ 
+          speaking_level: analysisData.level || 'beginner',
+          confidence_score: analysisData.confidence_score || 50,
+          total_speeches: 1
+        })
+        .eq('id', session.user.id);
+
+      if (updateError) throw updateError;
+
+      setAnalyzing(false);
+      toast.success("Assessment complete! 🎉");
+      
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 1500);
 
     } catch (error: any) {
       console.error('Upload error:', error);

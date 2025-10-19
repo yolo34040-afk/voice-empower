@@ -29,7 +29,7 @@ export const Navbar = () => {
   return (
     <nav className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-lg border-b border-border">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2 hover-scale">
+        <Link to={user ? "/dashboard" : "/"} className="flex items-center gap-2 hover-scale">
           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
             <Mic2 className="w-6 h-6 text-white" />
           </div>
