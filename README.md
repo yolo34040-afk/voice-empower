@@ -1,73 +1,48 @@
-# Welcome to your Lovable project
+# SpeakUp
 
-## Project info
+A digital space where voices find confidence.
 
-**URL**: https://lovable.dev/projects/9448bdb4-1cec-4375-8503-a2fa9cf2599c
+## Overview
 
-## How can I edit this code?
+SpeakUp is a web app that empowers people to express themselves confidently through public speaking practice.
+Users upload their speech recordings in response to guided prompts and receive personalized AI feedback on tone, pace, and clarity — helping them grow into powerful communicators.
 
-There are several ways of editing your application.
+Inspired by SDG 1 (No Poverty), SpeakUp believes that communication is an economic skill: improving your voice improves your opportunities.
 
-**Use Lovable**
+## Features
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/9448bdb4-1cec-4375-8503-a2fa9cf2599c) and start prompting.
+- Personalized Speaking Prompts — tailored to each user’s comfort level.
 
-Changes made via Lovable will be committed automatically to this repo.
+- Audio Upload System — record and upload speeches safely and easily.
 
-**Use your preferred IDE**
+- AI-Powered Feedback — get insights on tone, clarity, pacing, and filler words.
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+- Progress Dashboard — track your growth over time.
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+- Empowering Interface — minimal, calming design that feels safe and encouraging.
 
-Follow these steps:
+## Tech Stack
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+- Frontend: React.js, Typescript
+- Database: Supabase 
+- AI Feedback System: OpenAI Whisper + Google Gemini
+- Styling: Tailwind CSS / ShadCN UI
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
 
-# Step 3: Install the necessary dependencies.
-npm i
+## Inspiration
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+Many of us know the pain of freezing up when it’s our turn to speak — in class, in interviews, or in public.
+We realized how communication anxiety silently holds back opportunities. SpeakUp was born from that experience — a way to practice speaking in a judgment-free zone.
 
-**Edit a file directly in GitHub**
+## How It Works
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+- New users sign up and take a quick speaking assessment.
 
-**Use GitHub Codespaces**
+- Based on the result, the app suggests custom prompts that match their comfort level.
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+- Users upload recordings of their speeches.
 
-## What technologies are used for this project?
+- SpeakUp’s AI gives instant, constructive feedback.
 
-This project is built with:
+- Over time, users can track their progress and build confidence.
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/9448bdb4-1cec-4375-8503-a2fa9cf2599c) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
