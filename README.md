@@ -46,3 +46,20 @@ We realized how communication anxiety silently holds back opportunities. SpeakUp
 
 - Over time, users can track their progress and build confidence.
 
+## How to run the project
+```sh
+# Step 1: Clone the repository using the project's Git URL.
+git clone  https://github.com/yolo34040-afk/voice-empower.git
+
+# Step 2: Navigate to the project directory.
+cd voice-empower
+
+# Step 3: Install the necessary dependencies.
+npm i
+
+# Step 4: Start the development server.
+npm run dev
+
+# Step 5: Visit http://localhost:8080/
+use the application 
+```
